@@ -1,0 +1,21 @@
+---
+- name: Durcissement du serveur
+  hosts: servers
+  become: true
+  roles:
+    - role: base
+      tags: [base]
+    - role: ssh
+      tags: [ssh]
+    - role: firewall
+      tags: [firewall]
+    - role: fail2ban
+      tags: [fail2ban]
+    - role: sysctl
+      tags: [sysctl]
+    - role: hardening
+      tags: [hardening]
+    - role: auditd
+      tags: [auditd]
+    - role: aide
+      tags: [aide]

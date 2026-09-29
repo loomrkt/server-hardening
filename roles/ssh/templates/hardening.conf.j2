@@ -1,0 +1,27 @@
+# Géré par Ansible - ne pas éditer à la main
+Port {{ ssh_port }}
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+AuthenticationMethods publickey
+MaxAuthTries 3
+MaxSessions 2
+LoginGraceTime 30
+StrictModes yes
+IgnoreRhosts yes
+UseDNS no
+LogLevel VERBOSE
+PrintLastLog yes
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding {{ 'yes' if ssh_allow_tcp_forwarding else 'no' }}
+GatewayPorts no
+PermitTunnel no
+PermitUserEnvironment no
+TCPKeepAlive no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+Banner /etc/issue.net
+AllowUsers {{ ssh_allow_users | join(' ') }}

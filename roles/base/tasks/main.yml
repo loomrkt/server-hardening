@@ -1,0 +1,101 @@
+---
+- name: Mise à jour du cache APT
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Installation des paquets de base
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+      - libpam-pwquality
+      - debsums
+      - apt-show-versions
+      - chrony
+      - curl
+      - git
+      - vim
+      - acct
+      - lynis
+      - apparmor
+      - apparmor-utils
+    state: present
+
+- name: Fuseau horaire
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Mises à jour de sécurité automatiques
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+
+- name: Politique de mots de passe (login.defs)
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: "^#?\\s*{{ item.key }}\\b"
+    line: "{{ item.key }}\t{{ item.value }}"
+  loop:
+    - { key: PASS_MAX_DAYS, value: "{{ password_max_days }}" }
+    - { key: PASS_MIN_DAYS, value: "{{ password_min_days }}" }
+    - { key: UMASK, value: "{{ default_umask }}" }
+
+- name: Robustesse des mots de passe (pwquality)
+  ansible.builtin.copy:
+    dest: /etc/security/pwquality.conf
+    mode: "0644"
+    content: |
+      minlen = {{ password_min_length }}
+      minclass = 3
+      maxrepeat = 3
+      dictcheck = 1
+      enforcing = 1
+
+- name: Bannière légale (/etc/issue et /etc/issue.net)
+  ansible.builtin.template:
+    src: banner.j2
+    dest: "{{ item }}"
+    mode: "0644"
+  loop: [/etc/issue, /etc/issue.net]
+
+- name: Activer la comptabilité des processus (acct)
+  ansible.builtin.service:
+    name: acct
+    state: started
+    enabled: true
+  failed_when: false
+
+- name: Chrony actif
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true
+
+- name: Permissions strictes sur cron
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: "{{ '0600' if item == '/etc/crontab' else '0700' }}"
+  loop:
+    - /etc/crontab
+    - /etc/cron.d
+    - /etc/cron.daily
+    - /etc/cron.hourly
+    - /etc/cron.weekly
+    - /etc/cron.monthly
+
+- name: Purge des paquets supprimés (config résiduelle)
+  ansible.builtin.shell: |
+    set -o pipefail
+    pk=$(dpkg -l | awk '/^rc/ {print $2}')
+    [ -n "$pk" ] && dpkg --purge $pk && echo purged || true
+  args:
+    executable: /bin/bash
+  register: base_purge
+  changed_when: "'purged' in base_purge.stdout"

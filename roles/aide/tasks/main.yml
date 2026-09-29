@@ -1,0 +1,23 @@
+---
+- name: Installer AIDE
+  ansible.builtin.apt:
+    name:
+      - aide
+      - aide-common
+    state: present
+
+- name: Checksums SHA512 dans AIDE
+  ansible.builtin.copy:
+    dest: /etc/aide/aide.conf.d/99_sha512
+    mode: "0644"
+    content: |
+      # Géré par Ansible
+      Checksums = sha512
+
+- name: Initialiser la base AIDE (long, plusieurs minutes)
+  ansible.builtin.shell: |
+    aideinit --yes --force && cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+  args:
+    creates: /var/lib/aide/aide.db
+  async: 1800
+  poll: 15

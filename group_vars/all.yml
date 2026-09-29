@@ -1,0 +1,32 @@
+---
+# ============================================================
+# Variables globales : modifie ici, pas dans les rôles.
+# ============================================================
+
+# --- Général ---
+timezone: "UTC"
+admin_user: "nameno"          # utilisateur qui doit pouvoir se connecter en SSH
+
+# --- SSH ---
+ssh_port: 22
+ssh_allow_users: ["{{ admin_user }}"]
+ssh_allow_tcp_forwarding: false   # passe à true si tu utilises des tunnels SSH
+
+# --- Pare-feu (UFW) ---
+# Ports TCP supplémentaires à ouvrir (SSH est géré automatiquement)
+ufw_extra_tcp_ports: []           # ex: [80, 443]
+ufw_extra_udp_ports: []
+
+# --- Fail2ban ---
+fail2ban_bantime: "1h"
+fail2ban_findtime: "10m"
+fail2ban_maxretry: 5
+fail2ban_ignoreip: "127.0.0.1/8 ::1"   # ajoute ton IP fixe ici
+
+# --- Durcissement divers ---
+disable_usb_storage: true         # mettre false si serveur physique avec disque USB
+blacklisted_protocols: [dccp, sctp, rds, tipc]
+password_max_days: 365
+password_min_days: 1
+password_min_length: 12
+default_umask: "027"

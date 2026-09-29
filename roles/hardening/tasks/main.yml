@@ -1,0 +1,41 @@
+---
+- name: Désactiver les protocoles réseau rares
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/hardening-protocols.conf
+    mode: "0644"
+    content: |
+      {% for p in blacklisted_protocols %}
+      install {{ p }} /bin/true
+      blacklist {{ p }}
+      {% endfor %}
+
+- name: Désactiver usb-storage
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/hardening-usb.conf
+    mode: "0644"
+    content: |
+      install usb-storage /bin/true
+      blacklist usb-storage
+  when: disable_usb_storage
+
+- name: /dev/shm en nodev,nosuid,noexec
+  ansible.posix.mount:
+    path: /dev/shm
+    src: tmpfs
+    fstype: tmpfs
+    opts: defaults,nodev,nosuid,noexec
+    state: mounted
+
+- name: Installer un scanner de rootkits
+  ansible.builtin.apt:
+    name:
+      - rkhunter
+      - chkrootkit
+    install_recommends: false
+    state: present
+
+- name: AppArmor actif
+  ansible.builtin.service:
+    name: apparmor
+    state: started
+    enabled: true

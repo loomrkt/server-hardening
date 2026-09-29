@@ -1,0 +1,4 @@
+---
+- name: Recharger auditd
+  ansible.builtin.command: augenrules --load
+  changed_when: true

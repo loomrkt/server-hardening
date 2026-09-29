@@ -1,0 +1,7 @@
+---
+- name: Paramètres noyau durcis
+  ansible.builtin.template:
+    src: 99-hardening.conf.j2
+    dest: /etc/sysctl.d/99-hardening.conf
+    mode: "0644"
+  notify: Recharger sysctl

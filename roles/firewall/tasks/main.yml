@@ -1,0 +1,43 @@
+---
+- name: Installer UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Politique par défaut - tout entrant refusé
+  community.general.ufw:
+    default: deny
+    direction: incoming
+
+- name: Politique par défaut - sortant autorisé
+  community.general.ufw:
+    default: allow
+    direction: outgoing
+
+- name: SSH autorisé avec limitation de débit (anti brute-force)
+  community.general.ufw:
+    rule: limit
+    port: "{{ ssh_port }}"
+    proto: tcp
+
+- name: Ports TCP supplémentaires
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ ufw_extra_tcp_ports }}"
+
+- name: Ports UDP supplémentaires
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+  loop: "{{ ufw_extra_udp_ports }}"
+
+- name: Journalisation du pare-feu
+  community.general.ufw:
+    logging: "low"
+
+- name: Activer UFW (les règles SSH sont déjà en place)
+  community.general.ufw:
+    state: enabled

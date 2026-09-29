@@ -1,0 +1,36 @@
+# Géré par Ansible
+-D
+-b 8192
+-f 1
+
+# Identité et authentification
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/sudoers -p wa -k sudoers
+-w /etc/sudoers.d/ -p wa -k sudoers
+-w /etc/pam.d/ -p wa -k pam
+-w /etc/login.defs -p wa -k login
+
+# SSH et pare-feu
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /etc/ssh/sshd_config.d/ -p wa -k sshd
+-w /etc/ufw/ -p wa -k firewall
+
+# Persistance (cron, systemd)
+-w /etc/crontab -p wa -k cron
+-w /etc/cron.d/ -p wa -k cron
+-w /var/spool/cron/ -p wa -k cron
+-w /etc/systemd/system/ -p wa -k systemd
+
+# Modules noyau et changements d'heure
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules
+-a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time
+
+# Élévation de privilèges
+-w /usr/bin/sudo -p x -k priv_esc
+-w /usr/bin/su -p x -k priv_esc
+
+# Verrouiller la config (nécessite un reboot pour la modifier) - décommenter en prod
+# -e 2

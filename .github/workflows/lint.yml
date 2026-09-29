@@ -1,0 +1,10 @@
+name: lint
+on: [push, pull_request]
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install ansible ansible-lint
+      - run: ansible-playbook site.yml --syntax-check
+      - run: ansible-lint site.yml
